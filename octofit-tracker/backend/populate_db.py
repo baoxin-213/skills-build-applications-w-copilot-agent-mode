@@ -5,7 +5,13 @@ os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'octofit_tracker.settings')
 django.setup()
 
 from django.contrib.auth.models import User
-from octofit.models import Team, Activity  # Assumes you will create these models
+
+try:
+    from octofit.models import Team, Activity
+except ImportError:
+    Team = None
+    Activity = None
+    print("Warning: Team and Activity models do not exist yet. Please create them in octofit/models.py.")
 
 # Create test users
 def create_users():
@@ -20,20 +26,32 @@ def create_users():
 
 # Create test teams
 def create_teams():
-    paul = User.objects.get(username='paul')
-    jessica = User.objects.get(username='jessica')
-    Team.objects.get_or_create(name='Red Rockets', coach=paul)
-    Team.objects.get_or_create(name='Blue Blazers', coach=jessica)
+    if not Team:
+        print("Team model not found. Skipping team creation.")
+        return
+    try:
+        paul = User.objects.get(username='paul')
+        jessica = User.objects.get(username='jessica')
+        Team.objects.get_or_create(name='Red Rockets', coach=paul)
+        Team.objects.get_or_create(name='Blue Blazers', coach=jessica)
+    except Exception as e:
+        print(f"Error creating teams: {e}")
 
 # Create test activities
 def create_activities():
-    student = User.objects.get(username='student1')
-    team = Team.objects.first()
-    Activity.objects.get_or_create(user=student, team=team, type='Running', duration=30, points=10)
-    Activity.objects.get_or_create(user=student, team=team, type='Walking', duration=60, points=8)
+    if not Activity:
+        print("Activity model not found. Skipping activity creation.")
+        return
+    try:
+        student = User.objects.get(username='student1')
+        team = Team.objects.first()
+        Activity.objects.get_or_create(user=student, team=team, type='Running', duration=30, points=10)
+        Activity.objects.get_or_create(user=student, team=team, type='Walking', duration=60, points=8)
+    except Exception as e:
+        print(f"Error creating activities: {e}")
 
 if __name__ == '__main__':
     create_users()
     create_teams()
     create_activities()
-    print('Test data populated!')
+    print('Test data population attempted!')
